@@ -49,8 +49,8 @@ function showVocabPopup(app: App, root: string, word: string, x: number, y: numb
 
 	const popup = document.createElement('div');
 	popup.className = 'linwich-hover-card';
-	popup.style.left = `${x}px`;
-	popup.style.top = `${y + 20}px`;
+	popup.style.setProperty('--linwich-popup-x', `${x}px`);
+	popup.style.setProperty('--linwich-popup-y', `${y + 20}px`);
 
 	const wordEl = popup.createEl('div', { cls: 'linwich-hover-card-word', text: fm['word'] ?? word });
 	const defEl = popup.createEl('div', { cls: 'linwich-hover-card-definition', text: fm['definition'] ?? '' });
@@ -98,7 +98,9 @@ export function makeVocabViewPlugin(cache: VocabWordCache, app: App, root: strin
 			decorations: DecorationSet;
 			private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 			private activePopup: HTMLElement | null = null;
-			private mousemoveHandler: ((e: MouseEvent) => void) | null = null;
+			private dom: HTMLElement | null = null;
+			private mouseoverHandler: ((e: MouseEvent) => void) | null = null;
+			private mouseoutHandler:  ((e: MouseEvent) => void) | null = null;
 
 			constructor(view: EditorView) {
 				this.decorations = buildDecorations(view, cache);
@@ -120,17 +122,15 @@ export function makeVocabViewPlugin(cache: VocabWordCache, app: App, root: strin
 
 			destroy() {
 				if (this.debounceTimer) clearTimeout(this.debounceTimer);
-				if (this.mousemoveHandler) {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(document as any).removeEventListener('mousemove', this.mousemoveHandler);
-				}
+				if (this.mouseoverHandler) this.dom?.removeEventListener('mouseover', this.mouseoverHandler);
+				if (this.mouseoutHandler)  this.dom?.removeEventListener('mouseout',  this.mouseoutHandler);
 				removePopup(this.activePopup);
 			}
 
 			private attachMouseHandlers(view: EditorView) {
-				const dom = view.dom;
+				this.dom = view.dom;
 
-				dom.addEventListener('mouseover', (e: MouseEvent) => {
+				this.mouseoverHandler = (e: MouseEvent) => {
 					const target = e.target as HTMLElement;
 					if (!target.classList.contains('linwich-vocab-token')) {
 						removePopup(this.activePopup);
@@ -140,15 +140,18 @@ export function makeVocabViewPlugin(cache: VocabWordCache, app: App, root: strin
 					const word = target.textContent ?? '';
 					removePopup(this.activePopup);
 					this.activePopup = showVocabPopup(app, root, word, e.pageX, e.pageY);
-				});
+				};
 
-				dom.addEventListener('mouseout', (e: MouseEvent) => {
+				this.mouseoutHandler = (e: MouseEvent) => {
 					const related = e.relatedTarget as HTMLElement | null;
 					if (!related?.classList.contains('linwich-hover-card')) {
 						removePopup(this.activePopup);
 						this.activePopup = null;
 					}
-				});
+				};
+
+				this.dom.addEventListener('mouseover', this.mouseoverHandler);
+				this.dom.addEventListener('mouseout',  this.mouseoutHandler);
 			}
 		},
 		{ decorations: v => v.decorations }

@@ -74,7 +74,7 @@ export class LinwichView extends ItemView {
 
 	getViewType():    string { return LINWICH_VIEW_TYPE; }
 	getDisplayText(): string { return 'Linwich'; }
-	getIcon():        string { return 'pen-line'; }
+	getIcon():        string { return 'linwich-icon'; }
 
 	setCheckResult(result: GrammarCheckResult): void {
 		this.grammarCheckResult = result;
@@ -91,7 +91,7 @@ export class LinwichView extends ItemView {
 					(this.activeTab === 'vocab'    && p.startsWith(`${root}/Vocab/`))    ||
 					(this.activeTab === 'mistakes' && p.startsWith(`${root}/Mistakes/`))
 				) {
-					this.render();
+					void this.render();
 				}
 			})
 		);
@@ -99,21 +99,21 @@ export class LinwichView extends ItemView {
 			this.app.vault.on('delete', (file: TAbstractFile) => {
 				const p = file.path;
 				if (p.startsWith(`${root}/Vocab/`) || p.startsWith(`${root}/Mistakes/`)) {
-					this.render();
+					void this.render();
 				}
 			})
 		);
 		this.registerEvent(
 			this.app.vault.on('create', (file: TAbstractFile) => {
 				// Suppress re-render during active grammar check; view is refreshed manually after check
-				if (file.path.startsWith(`${root}/Mistakes/`) && !this.grammarChecking) this.render();
+				if (file.path.startsWith(`${root}/Mistakes/`) && !this.grammarChecking) void this.render();
 			})
 		);
 
 		await this.render();
 	}
 
-	async onClose(): Promise<void> { /* nothing */ }
+	onClose(): Promise<void> { return Promise.resolve(); }
 
 	// ── Top-level render ───────────────────────────────────────────────────────
 
@@ -136,8 +136,8 @@ export class LinwichView extends ItemView {
 			this.activeTab = tab;
 			vocabBtn.toggleClass('is-active',    tab === 'vocab');
 			mistakesBtn.toggleClass('is-active', tab === 'mistakes');
-			vocabSection.style.display    = tab === 'vocab'    ? '' : 'none';
-			mistakesSection.style.display = tab === 'mistakes' ? '' : 'none';
+			vocabSection.toggleClass('is-hidden',    tab !== 'vocab');
+			mistakesSection.toggleClass('is-hidden', tab !== 'mistakes');
 		};
 
 		vocabBtn.addEventListener('click',    () => setActive('vocab'));

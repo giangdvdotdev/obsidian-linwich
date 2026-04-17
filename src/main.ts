@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Notice, Plugin, TAbstractFile } from 'obsidian';
+import { Editor, MarkdownView, Notice, Plugin, TAbstractFile, addIcon } from 'obsidian';
 import { EditorView } from '@codemirror/view';
 import { DEFAULT_SETTINGS, LinwichSettings, LinwichSettingTab } from './settings';
 import { AddVocabModal } from './add-vocab-modal';
@@ -6,6 +6,7 @@ import { getVocabNoteSync } from './vocab';
 import { VocabWordCache, makeVocabViewPlugin, registerReadingViewProcessor, vocabCacheUpdated } from './vocab-hover';
 import { LINWICH_VIEW_TYPE, LinwichView } from './linwich-view';
 import { runGrammarCheck } from './grammar-check';
+import { LINWICH_ICON_SVG } from './icon';
 
 export default class LinwichPlugin extends Plugin {
 	settings!: LinwichSettings;
@@ -68,14 +69,16 @@ export default class LinwichPlugin extends Plugin {
 			})
 		);
 
+		addIcon('linwich-icon', LINWICH_ICON_SVG);
+
 		this.registerView(LINWICH_VIEW_TYPE, leaf => new LinwichView(leaf, this));
 
-		this.addRibbonIcon('languages', 'Linwich', () => {
+		this.addRibbonIcon('linwich-icon', 'Linwich', () => {
 			this.activateLinwichView();
 		});
 
 		this.addCommand({
-			id: 'open-linwich-view',
+			id: 'open-view',
 			name: 'Open Linwich sidebar',
 			callback: () => this.activateLinwichView(),
 		});
@@ -164,7 +167,7 @@ export default class LinwichPlugin extends Plugin {
 	}
 
 	onunload() {
-		// Clean up plugin resources
+		this.app.workspace.detachLeavesOfType(LINWICH_VIEW_TYPE);
 	}
 
 	async loadSettings() {

@@ -2,6 +2,12 @@
 
 Vocabulary tracking and grammar mistake detection for non-native English speakers.
 
+## Screenshots
+
+![Vocab hover card](assets/ss1.png)
+
+![Grammar mistake tracker](assets/ss2.png)
+
 ## Features
 
 - **Vocab sidebar** — Browse all saved vocabulary words with definitions, examples, and backlink counts. Click any word to open its note.
