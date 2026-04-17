@@ -1,36 +1,53 @@
-import {App, PluginSettingTab, Setting} from "obsidian";
-import MyPlugin from "./main";
+import { App, PluginSettingTab, Setting } from 'obsidian';
+import LinwichPlugin from './main';
 
-export interface MyPluginSettings {
-	mySetting: string;
+export interface LinwichSettings {
+	linwichFolder: string;
+	claudeApiKey: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+export const DEFAULT_SETTINGS: LinwichSettings = {
+	linwichFolder: 'linwich',
+	claudeApiKey: '',
+};
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class LinwichSettingTab extends PluginSettingTab {
+	plugin: LinwichPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: LinwichPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
-		const {containerEl} = this;
-
+		const { containerEl } = this;
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+			.setName('Linwich folder')
+			.setDesc('Root folder for Vocab and Mistakes notes (relative to vault root).')
+			.addText(text =>
+				text
+					.setPlaceholder('linwich')
+					.setValue(this.plugin.settings.linwichFolder)
+					.onChange(async value => {
+						this.plugin.settings.linwichFolder = value.trim() || 'linwich';
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Claude API key')
+			.setDesc('Used for grammar checking. Get a key at console.anthropic.com.')
+			.addText(text => {
+				text
+					.setPlaceholder('sk-ant-…')
+					.setValue(this.plugin.settings.claudeApiKey)
+					.onChange(async value => {
+						this.plugin.settings.claudeApiKey = value.trim();
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.type = 'password';
+			});
 	}
 }
