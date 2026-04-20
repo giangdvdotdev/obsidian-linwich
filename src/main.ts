@@ -19,11 +19,11 @@ export default class LinwichPlugin extends Plugin {
 
 		// 7.1 — build word set cache
 		this.vocabCache = new VocabWordCache(this.app, this.settings.linwichFolder);
-		await this.vocabCache.refresh();
+		this.vocabCache.refresh();
 
 		// 7.2 — refresh cache once metadata is ready (frontmatter parsed), then signal editors
-		const refreshAndSignal = async () => {
-			await this.vocabCache.refresh();
+		const refreshAndSignal = () => {
+			this.vocabCache.refresh();
 			this.app.workspace.iterateAllLeaves(leaf => {
 				const cm = (leaf.view as unknown as { editor?: { cm?: EditorView } }).editor?.cm;
 				if (cm) cm.dispatch({ effects: vocabCacheUpdated.of() });
@@ -99,10 +99,10 @@ export default class LinwichPlugin extends Plugin {
 						new Notice('No Markdown file is active.');
 						break;
 					case 'toolarge':
-						new Notice('File too large (max 10 KB).');
+						new Notice('File too large (max 10 kb).');
 						break;
 					case 'nokey':
-						new Notice('Claude API key not set. Add it in Linwich settings.');
+						new Notice('Claude API key not set. Open plugin settings to add it.');
 						break;
 					case 'error':
 						new Notice(`Grammar check failed: ${result.message}`);

@@ -25,10 +25,10 @@ export class LinwichSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Linwich folder')
-			.setDesc('Root folder for Vocab and Mistakes notes (relative to vault root).')
+			.setDesc('Root folder for vocab and mistakes notes (relative to vault root).')
 			.addText(text =>
 				text
-					.setPlaceholder('linwich')
+					.setPlaceholder('Folder path')
 					.setValue(this.plugin.settings.linwichFolder)
 					.onChange(async value => {
 						this.plugin.settings.linwichFolder = value.trim() || 'linwich';
@@ -41,7 +41,7 @@ export class LinwichSettingTab extends PluginSettingTab {
 			.setDesc('Used for grammar checking. Get a key at console.anthropic.com.')
 			.addText(text => {
 				text
-					.setPlaceholder('sk-ant-…')
+					.setPlaceholder('Enter API key')
 					.setValue(this.plugin.settings.claudeApiKey)
 					.onChange(async value => {
 						this.plugin.settings.claudeApiKey = value.trim();

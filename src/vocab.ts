@@ -60,14 +60,14 @@ export function getAllVocabWords(app: App, root: string): VocabEntry[] {
 	for (const child of folder.children) {
 		if (!(child instanceof TFile) || child.extension !== 'md') continue;
 		const cache = app.metadataCache.getFileCache(child);
-		const fm = cache?.frontmatter;
+		const fm = cache?.frontmatter as { word?: string; definition?: string; example?: string; added?: string; tags?: string[] } | undefined;
 		if (!fm) continue;
 		entries.push({
-			word: fm['word'] ?? child.basename,
-			definition: fm['definition'] ?? '',
-			example: fm['example'] ?? '',
-			added: fm['added'] ?? '',
-			tags: fm['tags'] ?? ['vocab'],
+			word: fm.word ?? child.basename,
+			definition: fm.definition ?? '',
+			example: fm.example ?? '',
+			added: fm.added ?? '',
+			tags: fm.tags ?? ['vocab'],
 			filePath: child.path,
 		});
 	}
@@ -85,7 +85,7 @@ export function getBacklinksForVocab(
 	const file = app.vault.getFileByPath(targetPath);
 	if (!file) return [];
 	const cache = app.metadataCache.getFileCache(file);
-	const sources = cache?.frontmatter?.['sources'];
+	const sources = (cache?.frontmatter as { sources?: string[] } | undefined)?.sources;
 	if (!Array.isArray(sources)) return [];
 	return sources;
 }

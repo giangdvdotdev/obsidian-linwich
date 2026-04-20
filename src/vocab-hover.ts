@@ -20,8 +20,8 @@ export class VocabWordCache {
 		this.root = root;
 	}
 
-	async refresh(): Promise<void> {
-		const entries = await getAllVocabWords(this.app, this.root);
+	refresh(): void {
+		const entries = getAllVocabWords(this.app, this.root);
 		this.wordSet = new Set(entries.map(e => e.word.toLowerCase()));
 	}
 
@@ -52,10 +52,11 @@ function showVocabPopup(app: App, root: string, word: string, x: number, y: numb
 	popup.style.setProperty('--linwich-popup-x', `${x}px`);
 	popup.style.setProperty('--linwich-popup-y', `${y + 20}px`);
 
-	const wordEl = popup.createEl('div', { cls: 'linwich-hover-card-word', text: fm['word'] ?? word });
-	const defEl = popup.createEl('div', { cls: 'linwich-hover-card-definition', text: fm['definition'] ?? '' });
-	if (fm['example']) {
-		popup.createEl('div', { cls: 'linwich-hover-card-example', text: fm['example'] });
+	const typed = fm as { word?: string; definition?: string; example?: string };
+	const wordEl = popup.createEl('div', { cls: 'linwich-hover-card-word', text: typed.word ?? word });
+	const defEl = popup.createEl('div', { cls: 'linwich-hover-card-definition', text: typed.definition ?? '' });
+	if (typed.example) {
+		popup.createEl('div', { cls: 'linwich-hover-card-example', text: typed.example });
 	}
 	// suppress unused variable warnings
 	void wordEl; void defEl;

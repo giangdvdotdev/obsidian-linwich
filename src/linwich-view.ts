@@ -27,16 +27,16 @@ function getAllMistakes(app: import('obsidian').App, root: string): MistakeEntry
 	for (const child of folder.children) {
 		if (!(child instanceof TFile) || child.extension !== 'md') continue;
 		const cache = app.metadataCache.getFileCache(child);
-		const fm = cache?.frontmatter;
+		const fm = cache?.frontmatter as { source_file?: string; original?: string; correction?: string; explanation?: string; line?: number; timestamp?: string; dismissed?: boolean } | undefined;
 		if (!fm) continue;
 		entries.push({
-			source_file: fm['source_file'] ?? '',
-			original:    fm['original']    ?? '',
-			correction:  fm['correction']  ?? '',
-			explanation: fm['explanation'] ?? '',
-			line:        fm['line']        ?? 0,
-			timestamp:   fm['timestamp']   ?? '',
-			dismissed:   fm['dismissed']   === true,
+			source_file: fm.source_file ?? '',
+			original:    fm.original    ?? '',
+			correction:  fm.correction  ?? '',
+			explanation: fm.explanation ?? '',
+			line:        fm.line        ?? 0,
+			timestamp:   fm.timestamp   ?? '',
+			dismissed:   fm.dismissed   === true,
 			filePath:    child.path,
 		});
 	}
@@ -147,8 +147,8 @@ export class LinwichView extends ItemView {
 		const vocabSection    = container.createEl('div', { cls: 'linwich-section' });
 		const mistakesSection = container.createEl('div', { cls: 'linwich-section' });
 
-		await this.renderVocab(vocabSection);
-		await this.renderMistakesTab(mistakesSection);
+		this.renderVocab(vocabSection);
+		this.renderMistakesTab(mistakesSection);
 
 		// Apply active tab state (restores after re-render)
 		setActive(this.activeTab);
@@ -156,7 +156,7 @@ export class LinwichView extends ItemView {
 
 	// ── Vocab section ──────────────────────────────────────────────────────────
 
-	private async renderVocab(section: HTMLElement): Promise<void> {
+	private renderVocab(section: HTMLElement): void {
 		const root = this.plugin.settings.linwichFolder;
 
 		const searchEl = section.createEl('input', {
@@ -206,7 +206,7 @@ export class LinwichView extends ItemView {
 
 	// ── Mistakes tab ──────────────────────────────────────────────────────────
 
-	private async renderMistakesTab(section: HTMLElement): Promise<void> {
+	private renderMistakesTab(section: HTMLElement): void {
 		const root = this.plugin.settings.linwichFolder;
 
 		// Check result (shown above the list, persists across re-renders)
@@ -308,7 +308,7 @@ export class LinwichView extends ItemView {
 				break;
 			case 'toolarge':
 				el.createEl('span', {
-					text: 'File too large (max 10 KB).',
+					text: 'File too large (max 10 kb).',
 					cls: 'linwich-check-warn',
 				});
 				break;

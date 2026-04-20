@@ -41,14 +41,14 @@ export class VocabView extends ItemView {
 			})
 		);
 
-		await this.render();
+		this.render();
 	}
 
 	async onClose(): Promise<void> {
 		// nothing to clean up
 	}
 
-	async render(): Promise<void> {
+	render(): void {
 		const container = this.containerEl.children[1] as HTMLElement;
 		container.empty();
 		container.addClass('linwich-vocab-view');
