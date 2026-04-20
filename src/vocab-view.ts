@@ -31,13 +31,13 @@ export class VocabView extends ItemView {
 		// Re-render after metadata cache has parsed the file (frontmatter is ready)
 		this.registerEvent(
 			this.app.metadataCache.on('changed', (file) => {
-				if (file.path.startsWith(vocabPath)) this.render();
+				if (file.path.startsWith(vocabPath)) void this.render();
 			})
 		);
 		// Deletions don't trigger metadataCache 'changed', use vault event for those
 		this.registerEvent(
 			this.app.vault.on('delete', (file: TAbstractFile) => {
-				if (file.path.startsWith(vocabPath)) this.render();
+				if (file.path.startsWith(vocabPath)) void this.render();
 			})
 		);
 
@@ -68,7 +68,7 @@ export class VocabView extends ItemView {
 		const listEl = container.createEl('div', { cls: 'linwich-vocab-list' });
 
 		const root = this.plugin.settings.linwichFolder;
-		const allEntries = await getAllVocabWords(this.app, root);
+		const allEntries = getAllVocabWords(this.app, root);
 		this.renderList(listEl, allEntries);
 	}
 
@@ -78,7 +78,6 @@ export class VocabView extends ItemView {
 	): void {
 		listEl.empty();
 		const query = this.searchQuery.toLowerCase();
-		const root = this.plugin.settings.linwichFolder;
 
 		const filtered = query
 			? allEntries.filter(
@@ -94,7 +93,7 @@ export class VocabView extends ItemView {
 			item.createEl('div', { text: entry.definition, cls: 'linwich-vocab-def' });
 
 			item.addEventListener('click', () => {
-				this.app.workspace.openLinkText(entry.filePath, '', false);
+				void this.app.workspace.openLinkText(entry.filePath, '', false);
 			});
 		}
 

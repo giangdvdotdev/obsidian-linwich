@@ -54,13 +54,13 @@ async function callClaudeApi(content: string, apiKey: string): Promise<GrammarMi
 }
 
 // 10.7 — Check if a matching mistake note already exists
-async function isDuplicate(
+function isDuplicate(
 	app: App,
 	root: string,
 	sourceFile: string,
 	line: number,
 	original: string
-): Promise<boolean> {
+): boolean {
 	const folder = app.vault.getFolderByPath(`${root}/Mistakes`);
 	if (!folder) return false;
 
@@ -144,7 +144,7 @@ export async function runGrammarCheck(
 		// 10.7 + 10.8 — deduplicate and write notes
 		let written = 0;
 		for (const mistake of mistakes) {
-			const dup = await isDuplicate(app, settings.linwichFolder, file.path, mistake.line, mistake.original);
+			const dup = isDuplicate(app, settings.linwichFolder, file.path, mistake.line, mistake.original);
 			if (!dup) {
 				await writeMistakeNote(app, settings.linwichFolder, file.path, mistake, written + 1);
 				written++;

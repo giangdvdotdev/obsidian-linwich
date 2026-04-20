@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Notice, Plugin, TAbstractFile, addIcon } from 'obsidian';
+import { Editor, EventRef, MarkdownView, Menu, MenuItem, Notice, Plugin, TAbstractFile, Workspace, addIcon } from 'obsidian';
 import { EditorView } from '@codemirror/view';
 import { DEFAULT_SETTINGS, LinwichSettings, LinwichSettingTab } from './settings';
 import { AddVocabModal } from './add-vocab-modal';
@@ -25,8 +25,7 @@ export default class LinwichPlugin extends Plugin {
 		const refreshAndSignal = async () => {
 			await this.vocabCache.refresh();
 			this.app.workspace.iterateAllLeaves(leaf => {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const cm = (leaf.view as any)?.editor?.cm as (EditorView | undefined);
+				const cm = (leaf.view as unknown as { editor?: { cm?: EditorView } }).editor?.cm;
 				if (cm) cm.dispatch({ effects: vocabCacheUpdated.of() });
 			});
 		};
@@ -34,14 +33,14 @@ export default class LinwichPlugin extends Plugin {
 		this.registerEvent(
 			this.app.metadataCache.on('changed', (file) => {
 				if (file.path.startsWith(`${this.settings.linwichFolder}/Vocab/`)) {
-					refreshAndSignal();
+					void refreshAndSignal();
 				}
 			})
 		);
 		this.registerEvent(
 			this.app.vault.on('delete', (file: TAbstractFile) => {
 				if (file.path.startsWith(`${this.settings.linwichFolder}/Vocab/`)) {
-					refreshAndSignal();
+					void refreshAndSignal();
 				}
 			})
 		);
@@ -74,12 +73,12 @@ export default class LinwichPlugin extends Plugin {
 		this.registerView(LINWICH_VIEW_TYPE, leaf => new LinwichView(leaf, this));
 
 		this.addRibbonIcon('linwich-icon', 'Linwich', () => {
-			this.activateLinwichView();
+			void this.activateLinwichView();
 		});
 
 		this.addCommand({
 			id: 'open-view',
-			name: 'Open Linwich sidebar',
+			name: 'Open sidebar',
 			callback: () => this.activateLinwichView(),
 		});
 
@@ -112,14 +111,15 @@ export default class LinwichPlugin extends Plugin {
 			},
 		});
 
+		type WorkspaceWithEditorMenu = Workspace & {
+			on(name: 'editor-menu', callback: (menu: Menu, editor: Editor, view: MarkdownView) => void): EventRef;
+		};
 		this.registerEvent(
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this.app.workspace as any).on('editor-menu', (menu: any, editor: Editor, _view: MarkdownView) => {
+			(this.app.workspace as WorkspaceWithEditorMenu).on('editor-menu', (menu: Menu, editor: Editor, _view: MarkdownView) => {
 				const root = this.settings.linwichFolder;
 
 				// Always available: check grammar on the active file
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				menu.addItem((item: any) =>
+				menu.addItem((item: MenuItem) =>
 					item
 						.setTitle('Check grammar')
 						.setIcon('spell-check')
@@ -139,18 +139,16 @@ export default class LinwichPlugin extends Plugin {
 
 				const file = getVocabNoteSync(this.app, root, selection);
 				if (file) {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					menu.addItem((item: any) =>
+					menu.addItem((item: MenuItem) =>
 						item
 							.setTitle(`Edit '${selection}' in Vocab`)
 							.setIcon('pencil')
 							.onClick(() => {
-								this.app.workspace.openLinkText(file.path, '', false);
+								void this.app.workspace.openLinkText(file.path, '', false);
 							})
 					);
 				} else {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					menu.addItem((item: any) =>
+					menu.addItem((item: MenuItem) =>
 						item
 							.setTitle(`Add '${selection}' to Vocab`)
 							.setIcon('plus-circle')
@@ -166,9 +164,7 @@ export default class LinwichPlugin extends Plugin {
 		this.addSettingTab(new LinwichSettingTab(this.app, this));
 	}
 
-	onunload() {
-		this.app.workspace.detachLeavesOfType(LINWICH_VIEW_TYPE);
-	}
+	onunload() {}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<LinwichSettings>);
@@ -190,7 +186,7 @@ export default class LinwichPlugin extends Plugin {
 			leaf = workspace.getLeftLeaf(false) ?? workspace.getLeaf(true);
 			await leaf.setViewState({ type: LINWICH_VIEW_TYPE, active: true });
 		}
-		workspace.revealLeaf(leaf);
+		void workspace.revealLeaf(leaf);
 	}
 
 	async ensureFolders() {

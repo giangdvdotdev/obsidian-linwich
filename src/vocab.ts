@@ -42,11 +42,7 @@ export async function createVocabNote(
 	await app.vault.create(path, content);
 }
 
-export async function getVocabNote(
-	app: App,
-	root: string,
-	word: string
-): Promise<TFile | null> {
+export function getVocabNote(app: App, root: string, word: string): TFile | null {
 	return getVocabNoteSync(app, root, word);
 }
 
@@ -56,10 +52,7 @@ export function getVocabNoteSync(app: App, root: string, word: string): TFile | 
 	return file ?? null;
 }
 
-export async function getAllVocabWords(
-	app: App,
-	root: string
-): Promise<VocabEntry[]> {
+export function getAllVocabWords(app: App, root: string): VocabEntry[] {
 	const folder = app.vault.getFolderByPath(`${root}/Vocab`);
 	if (!folder) return [];
 

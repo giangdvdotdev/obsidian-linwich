@@ -20,7 +20,7 @@ interface MistakeEntry {
 	filePath: string;
 }
 
-async function getAllMistakes(app: import('obsidian').App, root: string): Promise<MistakeEntry[]> {
+function getAllMistakes(app: import('obsidian').App, root: string): MistakeEntry[] {
 	const folder = app.vault.getFolderByPath(`${root}/Mistakes`);
 	if (!folder) return [];
 	const entries: MistakeEntry[] = [];
@@ -166,7 +166,7 @@ export class LinwichView extends ItemView {
 		});
 		searchEl.value = this.vocabSearch;
 		const listEl = section.createEl('div', { cls: 'linwich-vocab-list' });
-		const allEntries = await getAllVocabWords(this.app, root);
+		const allEntries = getAllVocabWords(this.app, root);
 
 		searchEl.addEventListener('input', () => {
 			this.vocabSearch = searchEl.value;
@@ -182,7 +182,6 @@ export class LinwichView extends ItemView {
 	): void {
 		listEl.empty();
 		const query = this.vocabSearch.toLowerCase();
-		const root  = this.plugin.settings.linwichFolder;
 
 		const filtered = query
 			? allEntries.filter(e =>
@@ -196,7 +195,7 @@ export class LinwichView extends ItemView {
 			item.createEl('div', { text: entry.word,       cls: 'linwich-vocab-word' });
 			item.createEl('div', { text: entry.definition, cls: 'linwich-vocab-def' });
 			item.addEventListener('click', () => {
-				this.app.workspace.openLinkText(entry.filePath, '', false);
+				void this.app.workspace.openLinkText(entry.filePath, '', false);
 			});
 		}
 
@@ -226,7 +225,7 @@ export class LinwichView extends ItemView {
 		toggleLabel.createEl('span', { text: 'Show dismissed' });
 
 		const mistakesEl  = section.createEl('div', { cls: 'linwich-mistakes-list' });
-		const allMistakes = await getAllMistakes(this.app, root);
+		const allMistakes = getAllMistakes(this.app, root);
 
 		const refreshMistakes = () => {
 			mistakesEl.empty();
@@ -261,7 +260,7 @@ export class LinwichView extends ItemView {
 			});
 			sourceLink.addEventListener('click', (e) => {
 				e.stopPropagation();
-				this.app.workspace.openLinkText(m.source_file, '', false);
+				void this.app.workspace.openLinkText(m.source_file, '', false);
 			});
 			if (m.line) {
 				sourceEl.createEl('span', { text: ` :${m.line}`, cls: 'linwich-mistake-line' });
@@ -276,9 +275,9 @@ export class LinwichView extends ItemView {
 
 			if (!m.dismissed) {
 				const btn = card.createEl('button', { text: 'Dismiss', cls: 'linwich-dismiss-btn' });
-				btn.addEventListener('click', async (e) => {
+				btn.addEventListener('click', (e) => {
 					e.stopPropagation();
-					await dismissMistake(this.app, m.filePath);
+					void dismissMistake(this.app, m.filePath);
 				});
 			}
 		}
@@ -317,10 +316,9 @@ export class LinwichView extends ItemView {
 				el.createEl('span', { text: 'API key not set. ', cls: 'linwich-check-warn' });
 				const link = el.createEl('a', { text: 'Open settings', cls: 'linwich-check-settings-link' });
 				link.addEventListener('click', () => {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(this.app as any).setting?.open?.();
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(this.app as any).setting?.openTabById?.('linwich');
+					const appSettings = (this.app as unknown as { setting?: { open?(): void; openTabById?(id: string): void } }).setting;
+					appSettings?.open?.();
+					appSettings?.openTabById?.('linwich');
 				});
 				break;
 			}
