@@ -81,7 +81,7 @@ export class LinwichView extends ItemView {
 		this.activeTab = 'mistakes';
 	}
 
-	async onOpen(): Promise<void> {
+	onOpen(): Promise<void> {
 		const root = this.plugin.settings.linwichFolder;
 
 		this.registerEvent(
@@ -91,7 +91,7 @@ export class LinwichView extends ItemView {
 					(this.activeTab === 'vocab'    && p.startsWith(`${root}/Vocab/`))    ||
 					(this.activeTab === 'mistakes' && p.startsWith(`${root}/Mistakes/`))
 				) {
-					void this.render();
+					this.render();
 				}
 			})
 		);
@@ -99,25 +99,26 @@ export class LinwichView extends ItemView {
 			this.app.vault.on('delete', (file: TAbstractFile) => {
 				const p = file.path;
 				if (p.startsWith(`${root}/Vocab/`) || p.startsWith(`${root}/Mistakes/`)) {
-					void this.render();
+					this.render();
 				}
 			})
 		);
 		this.registerEvent(
 			this.app.vault.on('create', (file: TAbstractFile) => {
 				// Suppress re-render during active grammar check; view is refreshed manually after check
-				if (file.path.startsWith(`${root}/Mistakes/`) && !this.grammarChecking) void this.render();
+				if (file.path.startsWith(`${root}/Mistakes/`) && !this.grammarChecking) this.render();
 			})
 		);
 
-		await this.render();
+		this.render();
+		return Promise.resolve();
 	}
 
 	onClose(): Promise<void> { return Promise.resolve(); }
 
 	// ── Top-level render ───────────────────────────────────────────────────────
 
-	async render(): Promise<void> {
+	render(): void {
 		const container = this.containerEl.children[1] as HTMLElement;
 		container.empty();
 		container.addClass('linwich-view');

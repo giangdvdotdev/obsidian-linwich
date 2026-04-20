@@ -25,23 +25,24 @@ export class VocabView extends ItemView {
 		return 'book-open';
 	}
 
-	async onOpen(): Promise<void> {
+	onOpen(): Promise<void> {
 		const vocabPath = `${this.plugin.settings.linwichFolder}/Vocab/`;
 
 		// Re-render after metadata cache has parsed the file (frontmatter is ready)
 		this.registerEvent(
 			this.app.metadataCache.on('changed', (file) => {
-				if (file.path.startsWith(vocabPath)) void this.render();
+				if (file.path.startsWith(vocabPath)) this.render();
 			})
 		);
 		// Deletions don't trigger metadataCache 'changed', use vault event for those
 		this.registerEvent(
 			this.app.vault.on('delete', (file: TAbstractFile) => {
-				if (file.path.startsWith(vocabPath)) void this.render();
+				if (file.path.startsWith(vocabPath)) this.render();
 			})
 		);
 
 		this.render();
+		return Promise.resolve();
 	}
 
 	async onClose(): Promise<void> {

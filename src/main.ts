@@ -128,7 +128,7 @@ export default class LinwichPlugin extends Plugin {
 							const view = this.getLinwichView();
 							if (view) {
 								view.setCheckResult(result);
-								await view.render();
+								view.render();
 							}
 						})
 				);
